@@ -15,5 +15,26 @@ pipeline {
       steps {
         sh 'npm install'
       }
+    } 
+    
+stage('Docker Build') {
+      steps {
+      	sh 'docker build -t sravsdocker26/nodejs:1 .'
+      }
+    }
+stage('Docker Push') {
+      steps {
+      	withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+        	sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+          sh 'docker push sravsdocker26/nodejs:1'
+        }
+        }
+   stage('deploy application into k8s') {
+      steps {
+          withKubeConfig([credentialsId: 'kubeconfig']) {
+          sh 'kubectl apply -f deployment.yaml'
+        }
+      } 
+      }
   }
-  }
+}
