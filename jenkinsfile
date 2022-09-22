@@ -29,6 +29,12 @@ stage('Docker Push') {
           sh 'docker push sravsdocker26/nodejs:1'
         }
         }
+  stage('scan with trivy') {
+            steps {
+                sh "trivy image -f json -o results.json nginx:1.18"
+                recordIssues(tools: [trivy(pattern: 'results.json')])
+            }
+        }
    stage('deploy application into k8s') {
       steps {
           withKubeConfig([credentialsId: 'kubeconfig']) {
